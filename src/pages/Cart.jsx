@@ -39,7 +39,6 @@ export default function Cart() {
         tierInfo = { level, tier };
       }
       
-      // Calculate the total price for this item
       const price = Number(cartItem.price) || 0;
       const quantity = Number(cartItem.quantity) || 0;
       
@@ -89,7 +88,6 @@ export default function Cart() {
     return `KES ${numPrice.toLocaleString()}`;
   };
 
-  // Group items by event
   const groupItemsByEvent = () => {
     const groups = {};
     cartItems.forEach(item => {
@@ -113,8 +111,6 @@ export default function Cart() {
   };
 
   const eventGroups = groupItemsByEvent();
-
-  // Calculate totals
   const totalItems = getTotalItems();
   const subtotal = getTotalPrice() || 0;
   const serviceFee = Math.round(subtotal * 0.05);
@@ -152,7 +148,8 @@ export default function Cart() {
       <div style={{ 
         minHeight: '100vh', 
         background: 'linear-gradient(to bottom, #f9fafb, #ffffff)',
-        fontFamily: "'Manrope', sans-serif"
+        fontFamily: "'Manrope', sans-serif",
+        overflowX: 'hidden',
       }}>
         <NavSection />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '1280px', margin: '0 auto', padding: '32px 16px' }}>
@@ -162,7 +159,7 @@ export default function Cart() {
             borderRadius: '24px',
             border: '2px dashed #e5e7eb',
             background: 'rgba(255,255,255,0.5)',
-            padding: '40px',
+            padding: '32px 20px', // FIXED: Better mobile padding
             textAlign: 'center'
           }}>
             <div style={{
@@ -180,7 +177,7 @@ export default function Cart() {
             </div>
             <h2 style={{
               marginTop: '20px',
-              fontSize: '24px',
+              fontSize: '22px', // FIXED: Smaller on mobile
               fontWeight: 800,
               color: '#111827'
             }}>
@@ -204,12 +201,13 @@ export default function Cart() {
                 borderRadius: '9999px',
                 background: 'linear-gradient(to right, #7c3aed, #6d28d9)',
                 padding: '12px 24px',
-                fontSize: '14px',
+                fontSize: '16px', // FIXED: Larger for touch
                 fontWeight: 700,
                 color: '#ffffff',
                 textDecoration: 'none',
                 boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                minHeight: '48px', // FIXED: Touch-friendly
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'linear-gradient(to right, #6d28d9, #5b21b6)';
@@ -235,9 +233,11 @@ export default function Cart() {
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(to bottom, #f9fafb, #ffffff)',
-      fontFamily: "'Manrope', sans-serif"
+      fontFamily: "'Manrope', sans-serif",
+      overflowX: 'hidden', // FIXED: Prevent horizontal scroll
+      maxWidth: '100%',
     }}>
-      {/* Background decorative elements */}
+      {/* Background decorative elements - FIXED: Hide on mobile */}
       <div
         style={{
           pointerEvents: 'none',
@@ -250,8 +250,10 @@ export default function Cart() {
           borderRadius: '50%',
           background: 'rgba(124, 58, 237, 0.1)',
           filter: 'blur(80px)',
-          zIndex: 0
+          zIndex: 0,
+          display: 'none', // FIXED: Hidden on mobile
         }}
+        className="decorative-blob"
       />
       <div
         style={{
@@ -265,16 +267,32 @@ export default function Cart() {
           borderRadius: '50%',
           background: 'rgba(236, 72, 153, 0.1)',
           filter: 'blur(80px)',
-          zIndex: 0
+          zIndex: 0,
+          display: 'none', // FIXED: Hidden on mobile
         }}
+        className="decorative-blob"
       />
 
       {/* Header Section */}
       <NavSection />
 
       {/* Cart Content */}
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1280px', margin: '0 auto', padding: '32px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+      <div style={{ 
+        position: 'relative', 
+        zIndex: 1, 
+        maxWidth: '1280px', 
+        margin: '0 auto', 
+        padding: '24px 12px', // FIXED: Reduced padding on mobile
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', // FIXED: Stack on mobile
+          alignItems: 'flex-start', // FIXED: Left align on mobile
+          gap: '12px', // FIXED: Gap between elements
+          marginBottom: '24px', // FIXED: Reduced margin
+        }}>
           <div>
             <p style={{
               fontSize: '12px',
@@ -287,7 +305,7 @@ export default function Cart() {
             </p>
             <h1 style={{
               marginTop: '4px',
-              fontSize: '30px',
+              fontSize: '24px', // FIXED: Smaller on mobile
               fontWeight: 800,
               letterSpacing: '-0.025em',
               color: '#b8860b'
@@ -295,7 +313,7 @@ export default function Cart() {
               Your cart
             </h1>
             <p style={{
-              marginTop: '8px',
+              marginTop: '4px', // FIXED: Reduced margin
               fontSize: '14px',
               color: '#6b7280'
             }}>
@@ -315,14 +333,15 @@ export default function Cart() {
                 borderRadius: '9999px',
                 border: '1px solid #e5e7eb',
                 background: 'rgba(255,255,255,0.8)',
-                padding: '8px 16px',
-                fontSize: '12px',
+                padding: '10px 16px', // FIXED: Larger touch target
+                fontSize: '14px', // FIXED: Larger for touch
                 fontWeight: 600,
                 color: '#6b7280',
                 backdropFilter: 'blur(4px)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                fontFamily: "'Manrope', sans-serif"
+                fontFamily: "'Manrope', sans-serif",
+                minHeight: '44px', // FIXED: Touch-friendly
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = '#ef4444';
@@ -339,9 +358,18 @@ export default function Cart() {
           )}
         </div>
 
-        <div style={{ display: 'grid', gap: '32px' }} className="cart-grid">
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', // FIXED: Stack on mobile
+          gap: '24px', // FIXED: Reduced gap
+        }} className="cart-grid">
           {/* Cart Items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '16px', // FIXED: Reduced gap
+            width: '100%', // FIXED: Full width
+          }}>
             {eventGroups.map((group) => (
               <EventGroup 
                 key={group.eventId}
@@ -352,14 +380,19 @@ export default function Cart() {
             ))}
           </div>
 
-          {/* Order Summary */}
-          <aside style={{ alignSelf: 'flex-start' }} className="cart-sidebar">
+          {/* Order Summary - FIXED: Full width on mobile */}
+          <aside style={{ 
+            alignSelf: 'stretch', // FIXED: Full width
+            width: '100%', // FIXED: Full width
+          }} className="cart-sidebar">
             <div style={{
               borderRadius: '24px',
               border: '1px solid #e5e7eb',
               background: '#ffffff',
-              padding: '24px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              padding: '20px', // FIXED: Better padding
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              width: '100%', // FIXED: Full width
+              boxSizing: 'border-box',
             }}>
               <h3 style={{
                 fontSize: '18px',
@@ -369,7 +402,7 @@ export default function Cart() {
                 Order summary
               </h3>
 
-              <div style={{ marginTop: '20px' }}>
+              <div style={{ marginTop: '16px' }}> {/* FIXED: Reduced margin */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>
                   <span style={{ color: '#6b7280' }}>Subtotal</span>
                   <span style={{ fontWeight: 600, color: '#111827' }}>
@@ -402,7 +435,7 @@ export default function Cart() {
                   Total
                 </span>
                 <span style={{
-                  fontSize: '24px',
+                  fontSize: '22px', // FIXED: Slightly smaller on mobile
                   fontWeight: 800,
                   color: '#7c3aed'
                 }}>
@@ -415,7 +448,7 @@ export default function Cart() {
                 onClick={handleCheckout}
                 disabled={isCheckingOut}
                 style={{
-                  marginTop: '20px',
+                  marginTop: '16px', // FIXED: Reduced margin
                   width: '100%',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -423,8 +456,8 @@ export default function Cart() {
                   gap: '8px',
                   borderRadius: '9999px',
                   background: 'linear-gradient(to right, #7c3aed, #6d28d9)',
-                  padding: '12px 20px',
-                  fontSize: '14px',
+                  padding: '14px 20px', // FIXED: Larger touch target
+                  fontSize: '16px', // FIXED: Larger for touch
                   fontWeight: 700,
                   color: '#ffffff',
                   border: 'none',
@@ -432,7 +465,8 @@ export default function Cart() {
                   boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)',
                   transition: 'all 0.3s ease',
                   opacity: isCheckingOut ? 0.5 : 1,
-                  fontFamily: "'Manrope', sans-serif"
+                  fontFamily: "'Manrope', sans-serif",
+                  minHeight: '52px', // FIXED: Touch-friendly
                 }}
                 onMouseEnter={(e) => {
                   if (!isCheckingOut) {
@@ -483,19 +517,71 @@ export default function Cart() {
         </div>
       </div>
 
+      {/* FIXED: Comprehensive responsive styles */}
       <style>
         {`
           @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
           }
+          
+          /* FIXED: Show decorative blobs on tablet/desktop */
+          @media (min-width: 768px) {
+            .decorative-blob {
+              display: block !important;
+            }
+          }
+          
+          /* FIXED: Desktop grid layout */
           @media (min-width: 1024px) {
             .cart-grid {
-              grid-template-columns: 1fr 380px !important;
+              flex-direction: row !important;
+              gap: 32px !important;
             }
+            
             .cart-sidebar {
+              align-self: flex-start !important;
+              width: 380px !important;
+              flex-shrink: 0 !important;
               position: sticky !important;
               top: 24px !important;
+            }
+            
+            .cart-sidebar > div {
+              width: 100% !important;
+            }
+            
+            .cart-items-container {
+              flex: 1 !important;
+            }
+          }
+          
+          /* FIXED: Prevent any overflow */
+          * {
+            box-sizing: border-box;
+          }
+          
+          /* FIXED: Ensure images don't overflow */
+          .event-image {
+            overflow: hidden !important;
+          }
+          
+          .event-image img {
+            max-width: 100% !important;
+            height: auto !important;
+          }
+          
+          /* FIXED: Better touch targets on mobile */
+          @media (max-width: 640px) {
+            button, 
+            a,
+            select,
+            input {
+              min-height: 44px !important;
+            }
+            
+            .cart-grid {
+              gap: 16px !important;
             }
           }
         `}
@@ -504,7 +590,7 @@ export default function Cart() {
   );
 }
 
-// Navigation Section Component
+// Navigation Section Component - FIXED: Better mobile padding
 function NavSection() {
   const navigate = useNavigate();
   
@@ -513,9 +599,9 @@ function NavSection() {
       position: 'relative',
       overflow: 'hidden',
       background: 'linear-gradient(135deg, #6d28d9, #7c3aed, #8b5cf6)',
-      padding: '32px 16px'
+      padding: '24px 12px', // FIXED: Better mobile padding
     }}>
-      {/* Decorative elements */}
+      {/* Decorative elements - FIXED: Hidden on mobile */}
       <div style={{
         pointerEvents: 'none',
         position: 'absolute',
@@ -526,8 +612,10 @@ function NavSection() {
         transform: 'translateX(33%) translateY(-33%)',
         borderRadius: '50%',
         background: 'rgba(245, 158, 11, 0.3)',
-        filter: 'blur(64px)'
-      }} />
+        filter: 'blur(64px)',
+        display: 'none', // FIXED: Hidden on mobile
+      }}
+      className="nav-decorative" />
       <div style={{
         pointerEvents: 'none',
         position: 'absolute',
@@ -538,8 +626,10 @@ function NavSection() {
         transform: 'translateX(-33%) translateY(33%)',
         borderRadius: '50%',
         background: 'rgba(139, 92, 246, 0.3)',
-        filter: 'blur(64px)'
-      }} />
+        filter: 'blur(64px)',
+        display: 'none', // FIXED: Hidden on mobile
+      }}
+      className="nav-decorative" />
       
       <div style={{
         position: 'relative',
@@ -556,14 +646,15 @@ function NavSection() {
             borderRadius: '9999px',
             border: '1px solid rgba(255,255,255,0.2)',
             background: 'rgba(255,255,255,0.1)',
-            padding: '6px 16px',
-            fontSize: '12px',
+            padding: '8px 16px', // FIXED: Larger touch target
+            fontSize: '14px', // FIXED: Larger for touch
             fontWeight: 600,
             color: '#ffffff',
             backdropFilter: 'blur(4px)',
             cursor: 'pointer',
             transition: 'all 0.2s',
-            fontFamily: "'Manrope', sans-serif"
+            fontFamily: "'Manrope', sans-serif",
+            minHeight: '44px', // FIXED: Touch-friendly
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
@@ -577,9 +668,9 @@ function NavSection() {
           <ArrowLeft size={14} />
           Keep browsing events
         </button>
-        <div style={{ marginTop: '16px' }}>
+        <div style={{ marginTop: '12px' }}> {/* FIXED: Reduced margin */}
           <h1 style={{
-            fontSize: '24px',
+            fontSize: '22px', // FIXED: Smaller on mobile
             fontWeight: 800,
             letterSpacing: '-0.025em',
             color: '#ffffff'
@@ -588,11 +679,28 @@ function NavSection() {
           </h1>
         </div>
       </div>
+
+      {/* FIXED: Show decorations on tablet/desktop */}
+      <style>
+        {`
+          @media (min-width: 768px) {
+            .nav-decorative {
+              display: block !important;
+            }
+            section {
+              padding: 32px 16px !important;
+            }
+            .nav-decorative + .nav-decorative {
+              display: block !important;
+            }
+          }
+        `}
+      </style>
     </section>
   );
 }
 
-// Event Group Component - Simplified without quantity controls
+// Event Group Component - FIXED: Better mobile layout
 function EventGroup({ group, onRemoveItem, formatPrice }) {
   const { items, eventTitle, eventDate, eventVenue, eventCity, image, eventSlug } = group;
   const eventSubtotal = items.reduce((s, item) => s + (Number(item.price) || 0) * item.quantity, 0);
@@ -600,11 +708,13 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
   return (
     <article style={{
       overflow: 'hidden',
-      borderRadius: '24px',
+      borderRadius: '20px', // FIXED: Smaller radius on mobile
       border: '1px solid #e5e7eb',
       background: '#ffffff',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      transition: 'all 0.3s ease'
+      transition: 'all 0.3s ease',
+      width: '100%', // FIXED: Full width
+      maxWidth: '100%', // FIXED: Prevent overflow
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
@@ -612,27 +722,29 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
     onMouseLeave={(e) => {
       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
     }}>
-      {/* Event Header */}
+      {/* Event Header - FIXED: Better mobile layout */}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
+        gap: '12px', // FIXED: Reduced gap
         borderBottom: '1px solid #e5e7eb',
-        padding: '20px'
+        padding: '16px', // FIXED: Better padding
       }} className="event-header">
         <div style={{
           display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
+          flexDirection: 'column', // Mobile: stack vertically
+          gap: '12px', // FIXED: Reduced gap
           width: '100%'
         }} className="event-header-inner">
+          {/* Event Image - FIXED: Better sizing */}
           <div style={{
             position: 'relative',
-            height: '96px',
+            height: '120px', // FIXED: Fixed height on mobile
             width: '100%',
             overflow: 'hidden',
-            borderRadius: '16px',
-            background: 'linear-gradient(to bottom right, #7c3aed, #ec4899)'
+            borderRadius: '12px', // FIXED: Smaller radius
+            background: 'linear-gradient(to bottom right, #7c3aed, #ec4899)',
+            flexShrink: 0, // FIXED: Prevent shrinking
           }} className="event-image">
             {image ? (
               <img
@@ -641,7 +753,8 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
                 style={{
                   height: '100%',
                   width: '100%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
+                  display: 'block',
                 }}
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -651,15 +764,24 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               <div style={{ height: '100%', width: '100%', background: 'linear-gradient(to bottom right, #7c3aed, #ec4899)' }} />
             )}
           </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
+          
+          {/* Event Info - FIXED: Better layout */}
+          <div style={{ 
+            minWidth: 0, 
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px', // FIXED: Tighter spacing
+          }}>
             <Link
               to={eventSlug}
               style={{
-                fontSize: '18px',
+                fontSize: '16px', // FIXED: Smaller on mobile
                 fontWeight: 800,
                 color: '#111827',
                 textDecoration: 'none',
-                transition: 'color 0.2s'
+                transition: 'color 0.2s',
+                lineHeight: 1.3,
               }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#7c3aed'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
@@ -667,18 +789,27 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               {eventTitle}
             </Link>
             <p style={{
-              marginTop: '4px',
               fontSize: '12px',
               color: '#6b7280',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '6px', // FIXED: Smaller gap
+              flexWrap: 'wrap', // FIXED: Wrap on small screens
             }}>
               <Calendar size={12} />
-              {eventDate} · {eventVenue}, {eventCity}
+              <span>{eventDate}</span>
+              <span style={{ color: '#d1d5db' }}>·</span>
+              <span>{eventVenue}</span>
+              <span style={{ color: '#d1d5db' }}>·</span>
+              <span>{eventCity}</span>
             </p>
           </div>
-          <div style={{ textAlign: 'right' }}>
+          
+          {/* Event Subtotal - FIXED: Better alignment */}
+          <div style={{ 
+            textAlign: 'left', // FIXED: Left align on mobile
+            marginTop: '4px', // FIXED: Small margin
+          }}>
             <p style={{
               fontSize: '10px',
               fontWeight: 700,
@@ -689,9 +820,9 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               Event subtotal
             </p>
             <p style={{
-              fontSize: '16px',
+              fontSize: '18px', // FIXED: Slightly larger
               fontWeight: 800,
-              color: '#111827'
+              color: '#7c3aed'
             }}>
               {formatPrice(eventSubtotal)}
             </p>
@@ -699,8 +830,13 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
         </div>
       </div>
 
-      {/* Ticket Items - Simplified without quantity controls */}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      {/* Ticket Items - FIXED: Better mobile layout */}
+      <ul style={{ 
+        listStyle: 'none', 
+        margin: 0, 
+        padding: 0,
+        width: '100%', // FIXED: Full width
+      }}>
         {items.map((item, index) => {
           const itemPrice = Number(item.price) || 0;
           const itemTotal = itemPrice * item.quantity;
@@ -710,14 +846,20 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               key={item.id || `${item.eventId}-${item.tierName}-${index}`}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                padding: '16px 20px',
-                borderTop: '1px solid #f3f4f6'
+                flexDirection: 'column', // Mobile: stack vertically
+                gap: '8px', // FIXED: Reduced gap
+                padding: '12px 16px', // FIXED: Better padding
+                borderTop: '1px solid #f3f4f6',
+                width: '100%',
+                boxSizing: 'border-box',
               }}
               className="ticket-item"
             >
-              <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ 
+                minWidth: 0, 
+                flex: 1,
+                width: '100%', // FIXED: Full width
+              }}>
                 <p style={{
                   fontSize: '14px',
                   fontWeight: 700,
@@ -731,21 +873,27 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
                   color: '#6b7280',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px'
+                  gap: '4px',
+                  flexWrap: 'wrap', // FIXED: Wrap on small screens
                 }}>
                   <Ticket size={12} />
-                  {item.levelName} · {formatPrice(itemPrice)} each · 
+                  <span>{item.levelName}</span>
+                  <span style={{ color: '#d1d5db' }}>·</span>
+                  <span>{formatPrice(itemPrice)} each</span>
+                  <span style={{ color: '#d1d5db' }}>·</span>
                   <span style={{ fontWeight: 600, color: '#111827' }}>× {item.quantity}</span>
                 </p>
               </div>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '16px'
+                justifyContent: 'space-between', // FIXED: Space between
+                width: '100%', // FIXED: Full width
+                gap: '12px',
               }} className="ticket-controls">
                 <div style={{
                   minWidth: '80px',
-                  textAlign: 'right',
+                  textAlign: 'left', // FIXED: Left align on mobile
                   fontSize: '14px',
                   fontWeight: 800,
                   color: '#7c3aed'
@@ -759,14 +907,15 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
                   style={{
                     display: 'grid',
                     placeItems: 'center',
-                    width: '36px',
-                    height: '36px',
+                    minWidth: '44px', // FIXED: Touch-friendly
+                    minHeight: '44px', // FIXED: Touch-friendly
                     borderRadius: '9999px',
                     border: 'none',
                     background: 'transparent',
                     color: '#9ca3af',
                     cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    padding: '8px', // FIXED: Better padding
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = '#fee2e2';
@@ -785,25 +934,48 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
         })}
       </ul>
 
+      {/* FIXED: Responsive styles for EventGroup */}
       <style>
         {`
           @media (min-width: 640px) {
             .event-header-inner {
               flex-direction: row !important;
               align-items: center !important;
+              gap: 16px !important;
             }
+            
             .event-image {
-              width: 128px !important;
+              width: 120px !important;
               height: 80px !important;
+              flex-shrink: 0 !important;
             }
+            
             .ticket-item {
               flex-direction: row !important;
               align-items: center !important;
               justify-content: space-between !important;
+              padding: 16px 20px !important;
             }
+            
             .ticket-controls {
-              flex: 1 !important;
+              flex: 0 1 auto !important;
+              width: auto !important;
               justify-content: flex-end !important;
+              gap: 16px !important;
+            }
+            
+            .ticket-controls > div {
+              text-align: right !important;
+            }
+          }
+          
+          @media (min-width: 768px) {
+            .event-header {
+              padding: 20px !important;
+            }
+            
+            .event-header-inner {
+              gap: 16px !important;
             }
           }
         `}

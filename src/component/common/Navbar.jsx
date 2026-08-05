@@ -62,6 +62,8 @@ const Navbar = () => {
           box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
           animation: slideDown 0.3s ease;
           overflow-y: auto;
+          display: flex;
+          flex-direction: column; /* FIXED: Stack items vertically */
         }
 
         .mobile-menu-panel .close-btn {
@@ -71,7 +73,8 @@ const Navbar = () => {
           cursor: pointer;
           color: #4b5563;
           padding: 4px 8px;
-          float: right;
+          align-self: flex-end; /* FIXED: Keep close button at top right */
+          margin-bottom: 20px; /* FIXED: Space after close button */
         }
 
         .mobile-menu-panel .mobile-link {
@@ -83,6 +86,8 @@ const Navbar = () => {
           font-weight: 500;
           border-bottom: 1px solid #f3f4f6;
           transition: color 0.2s;
+          /* FIXED: Ensure proper order */
+          order: 0;
         }
 
         .mobile-menu-panel .mobile-link:hover {
@@ -103,6 +108,8 @@ const Navbar = () => {
           font-weight: 600;
           text-decoration: none;
           transition: transform 0.2s;
+          /* FIXED: Push to bottom if needed, but keep in flow */
+          margin-top: auto;
         }
 
         .mobile-menu-panel .mobile-login-btn:hover {
@@ -113,13 +120,20 @@ const Navbar = () => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 14px 0;
+          padding: 16px 0;
           margin-top: 8px;
           border-bottom: 1px solid #f3f4f6;
           text-decoration: none;
           color: #1f2937;
           font-size: 18px;
           font-weight: 500;
+        }
+
+        /* Menu items container - FIXED: Proper spacing */
+        .mobile-menu-items {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
         }
 
         /* Hamburger icon animation */
@@ -177,6 +191,20 @@ const Navbar = () => {
           }
           .desktop-right-section {
             display: flex !important;
+          }
+        }
+
+        /* FIXED: Additional mobile styles */
+        @media (max-width: 480px) {
+          .mobile-menu-panel {
+            width: 100%;
+            max-width: 100%;
+            padding: 16px;
+          }
+          
+          .mobile-menu-panel .mobile-link {
+            font-size: 16px;
+            padding: 14px 0;
           }
         }
       `;
@@ -454,12 +482,14 @@ const Navbar = () => {
         <div className="mobile-menu-overlay" onClick={closeMenu} />
       )}
 
-      {/* Mobile Menu Panel */}
+      {/* Mobile Menu Panel - FIXED VERSION */}
       {isMenuOpen && (
         <div className="mobile-menu-panel">
           <button className="close-btn" onClick={closeMenu}>✕</button>
           
-          <div style={{ marginTop: '1800px' }}>
+          {/* REMOVED THE marginTop: '1800px' - THIS WAS THE PROBLEM! */}
+          {/* Menu items now appear at the top immediately */}
+          <div className="mobile-menu-items">
             <Link to="/" className="mobile-link" onClick={closeMenu}>
               🏠 Home
             </Link>
@@ -487,7 +517,7 @@ const Navbar = () => {
               </span>
             </Link>
 
-            {/* Mobile Login/Profile */}
+            {/* Mobile Login/Profile - Now properly positioned */}
             {isLoggedIn ? (
               <Link to="/profile" className="mobile-login-btn" onClick={closeMenu} style={{
                 background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',

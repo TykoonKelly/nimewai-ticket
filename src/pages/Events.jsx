@@ -2,8 +2,8 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Calendar, MapPin, Ticket, SlidersHorizontal } from 'lucide-react';
-import EventImage from '../component/EventImage'; // Fixed path to component folder
-import { getEventImage } from '../utils/eventImages.jsx'; // Fixed path with .jsx extension
+import EventImage from '../component/EventImage';
+import { getEventImage } from '../utils/eventImages.jsx';
 import EventCard from '../component/home/EventCard.jsx';
 import { ALL_EVENTS } from '../data/events.js';
 import { getCheapestActiveTier } from '../utils/ticketUtils.jsx';
@@ -35,11 +35,9 @@ const Events = () => {
       const aHasTickets = !!getCheapestActiveTier(a.ticketLevels);
       const bHasTickets = !!getCheapestActiveTier(b.ticketLevels);
       
-      // Show events with tickets first
       if (aHasTickets && !bHasTickets) return -1;
       if (!aHasTickets && bHasTickets) return 1;
       
-      // Then sort by cheapest price
       const aPrice = getCheapestActiveTier(a.ticketLevels)?.tier.price || Infinity;
       const bPrice = getCheapestActiveTier(b.ticketLevels)?.tier.price || Infinity;
       return aPrice - bPrice;
@@ -57,6 +55,8 @@ const Events = () => {
       minHeight: '100vh', 
       backgroundColor: '#f8fafc',
       fontFamily: "'Manrope', sans-serif",
+      overflowX: 'hidden', // FIXED: Prevent horizontal scroll
+      maxWidth: '100%', // FIXED: Ensure full width containment
     }}>
       {/* Page header */}
       <section
@@ -65,10 +65,11 @@ const Events = () => {
           overflow: 'hidden',
           borderBottom: '1px solid #e5e7eb',
           background: 'linear-gradient(135deg, #6d28d9, #7c3aed, #8b5cf6)',
-          padding: '64px 16px',
+          padding: '40px 16px', // FIXED: Reduced padding on mobile
         }}
+        className="hero-section"
       >
-        {/* Decorative elements */}
+        {/* Decorative elements - FIXED: Hide on mobile for better performance */}
         <div
           style={{
             pointerEvents: 'none',
@@ -81,7 +82,9 @@ const Events = () => {
             borderRadius: '50%',
             background: 'rgba(245, 158, 11, 0.3)',
             filter: 'blur(64px)',
+            display: 'none', // FIXED: Hidden on mobile
           }}
+          className="decorative-blob"
         />
         <div
           style={{
@@ -95,7 +98,9 @@ const Events = () => {
             borderRadius: '50%',
             background: 'rgba(139, 92, 246, 0.3)',
             filter: 'blur(64px)',
+            display: 'none', // FIXED: Hidden on mobile
           }}
+          className="decorative-blob"
         />
         
         <div
@@ -136,28 +141,30 @@ const Events = () => {
             style={{
               marginTop: '16px',
               maxWidth: '768px',
-              fontSize: '30px',
+              fontSize: '24px', // FIXED: Smaller on mobile
               fontWeight: 800,
               letterSpacing: '-0.025em',
             }}
+            className="page-title"
           >
             Every experience worth showing up for.
           </h1>
           <p
             style={{
-              marginTop: '12px',
+              marginTop: '8px', // FIXED: Reduced margin
               maxWidth: '672px',
-              fontSize: '16px',
+              fontSize: '14px', // FIXED: Smaller on mobile
               opacity: 0.8,
             }}
+            className="page-subtitle"
           >
             Browse our current lineup of events and grab your spot in seconds.
           </p>
           
-          {/* Search + filters */}
+          {/* Search + filters - FIXED: Better mobile layout */}
           <div
             style={{
-              marginTop: '32px',
+              marginTop: '24px', // FIXED: Reduced margin
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
@@ -167,10 +174,18 @@ const Events = () => {
               padding: '12px',
               boxShadow: '0 16px 48px rgba(0,0,0,0.15)',
               backdropFilter: 'blur(4px)',
+              width: '100%', // FIXED: Full width
+              maxWidth: '100%', // FIXED: Prevent overflow
+              boxSizing: 'border-box', // FIXED: Include padding in width
             }}
             className="filter-container"
           >
-            <div style={{ position: 'relative', flex: 1 }}>
+            <div style={{ 
+              position: 'relative', 
+              flex: 1,
+              width: '100%', // FIXED: Full width
+              maxWidth: '100%', // FIXED: Prevent overflow
+            }}>
               <Search
                 style={{
                   pointerEvents: 'none',
@@ -189,13 +204,13 @@ const Events = () => {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search events, venues, or locations..."
                 style={{
-                  height: '44px',
+                  height: '48px', // FIXED: Larger for touch (44px+)
                   width: '100%',
                   borderRadius: '12px',
                   border: '1px solid #e5e7eb',
                   backgroundColor: '#ffffff',
                   padding: '0 12px 0 40px',
-                  fontSize: '14px',
+                  fontSize: '16px', // FIXED: Prevents iOS zoom
                   fontFamily: "'Manrope', sans-serif",
                   color: '#111827',
                   outline: 'none',
@@ -215,8 +230,10 @@ const Events = () => {
             <div
               style={{
                 display: 'flex',
-                flexDirection: 'column',
+                flexDirection: 'column', // FIXED: Stack on mobile
                 gap: '8px',
+                width: '100%', // FIXED: Full width
+                maxWidth: '100%', // FIXED: Prevent overflow
               }}
               className="filter-selects"
             >
@@ -224,17 +241,19 @@ const Events = () => {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 style={{
-                  height: '44px',
+                  height: '48px', // FIXED: Larger for touch
+                  width: '100%', // FIXED: Full width
                   borderRadius: '12px',
                   border: '1px solid #e5e7eb',
                   backgroundColor: '#ffffff',
                   padding: '0 12px',
-                  fontSize: '14px',
+                  fontSize: '16px', // FIXED: Prevents iOS zoom
                   fontFamily: "'Manrope', sans-serif",
                   color: '#111827',
                   outline: 'none',
                   transition: 'all 0.2s',
-                  flex: 1,
+                  flex: '1',
+                  boxSizing: 'border-box',
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#7c3aed';
@@ -253,17 +272,19 @@ const Events = () => {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 style={{
-                  height: '44px',
+                  height: '48px', // FIXED: Larger for touch
+                  width: '100%', // FIXED: Full width
                   borderRadius: '12px',
                   border: '1px solid #e5e7eb',
                   backgroundColor: '#ffffff',
                   padding: '0 12px',
-                  fontSize: '14px',
+                  fontSize: '16px', // FIXED: Prevents iOS zoom
                   fontFamily: "'Manrope', sans-serif",
                   color: '#111827',
                   outline: 'none',
                   transition: 'all 0.2s',
-                  flex: 1,
+                  flex: '1',
+                  boxSizing: 'border-box',
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#7c3aed';
@@ -286,14 +307,17 @@ const Events = () => {
       {/* Results */}
       <section
         style={{
-          padding: '48px 16px',
+          padding: '24px 12px', // FIXED: Reduced padding on mobile
           fontFamily: "'Manrope', sans-serif",
+          maxWidth: '100%', // FIXED: Prevent overflow
+          overflowX: 'hidden', // FIXED: Prevent horizontal scroll
         }}
       >
         <div
           style={{
             maxWidth: '1280px',
             margin: '0 auto',
+            padding: '0 4px', // FIXED: Small padding
           }}
         >
           <div
@@ -301,9 +325,15 @@ const Events = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap', // FIXED: Wrap on small screens
+              gap: '8px', // FIXED: Gap for wrapped items
             }}
           >
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>
+            <p style={{ 
+              fontSize: '14px', 
+              color: '#6b7280',
+              margin: '0', // FIXED: Remove default margin
+            }}>
               <span style={{ fontWeight: 600, color: '#111827' }}>{sortedEvents.length}</span>
               {" "}event{sortedEvents.length === 1 ? "" : "s"} found
             </p>
@@ -325,11 +355,11 @@ const Events = () => {
           {sortedEvents.length === 0 ? (
             <div
               style={{
-                marginTop: '48px',
+                marginTop: '32px', // FIXED: Reduced margin
                 borderRadius: '24px',
                 border: '2px dashed #e5e7eb',
                 backgroundColor: '#ffffff',
-                padding: '48px',
+                padding: '32px 16px', // FIXED: Better mobile padding
                 textAlign: 'center',
               }}
             >
@@ -346,8 +376,8 @@ const Events = () => {
                   marginTop: '24px',
                   borderRadius: '9999px',
                   backgroundColor: '#7c3aed',
-                  padding: '10px 20px',
-                  fontSize: '14px',
+                  padding: '12px 24px', // FIXED: Larger touch target
+                  fontSize: '16px', // FIXED: Prevents iOS zoom
                   fontFamily: "'Manrope', sans-serif",
                   fontWeight: 600,
                   color: '#ffffff',
@@ -355,6 +385,7 @@ const Events = () => {
                   cursor: 'pointer',
                   boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)',
                   transition: 'all 0.3s ease',
+                  minHeight: '48px', // FIXED: Touch-friendly
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#6d28d9';
@@ -371,43 +402,137 @@ const Events = () => {
           ) : (
             <div
               style={{
-                marginTop: '32px',
+                marginTop: '24px', // FIXED: Reduced margin
                 display: 'grid',
-                gap: '24px',
-                gridTemplateColumns: '1fr',
+                gap: '16px', // FIXED: Reduced gap on mobile
+                gridTemplateColumns: '1fr', // Mobile default
+                width: '100%', // FIXED: Full width
+                maxWidth: '100%', // FIXED: Prevent overflow
               }}
               className="events-grid"
             >
               {sortedEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
+                <div key={event.id} style={{ width: '100%' }}>
+                  <EventCard event={event} />
+                </div>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* Add responsive styles */}
+      {/* FIXED: Comprehensive responsive styles */}
       <style>
         {`
+          /* FIXED: Show decorative blobs on tablet/desktop only */
+          @media (min-width: 768px) {
+            .decorative-blob {
+              display: block !important;
+            }
+            
+            .hero-section {
+              padding: 64px 16px !important;
+            }
+            
+            .page-title {
+              font-size: 30px !important;
+            }
+            
+            .page-subtitle {
+              font-size: 16px !important;
+              margin-top: 12px !important;
+            }
+          }
+          
+          /* FIXED: Filter container improvements */
           @media (min-width: 640px) {
             .filter-container {
               flex-direction: row !important;
               align-items: center !important;
+              padding: 16px !important;
             }
+            
             .filter-selects {
               flex-direction: row !important;
+              gap: 12px !important;
+              width: auto !important;
             }
+            
+            .filter-selects select {
+              width: auto !important;
+              min-width: 140px !important;
+            }
+          }
+          
+          /* FIXED: Grid responsive breakpoints */
+          @media (min-width: 640px) {
             .events-grid {
               grid-template-columns: repeat(2, 1fr) !important;
+              gap: 20px !important;
+            }
+            
+            section {
+              padding: 32px 16px !important;
             }
           }
           
           @media (min-width: 1024px) {
             .events-grid {
               grid-template-columns: repeat(3, 1fr) !important;
+              gap: 24px !important;
             }
+            
             .sort-desktop {
               display: flex !important;
+            }
+            
+            section {
+              padding: 48px 16px !important;
+            }
+          }
+          
+          /* FIXED: Prevent any overflow */
+          * {
+            box-sizing: border-box;
+          }
+          
+          /* FIXED: Ensure selects work properly on iOS */
+          select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px !important;
+          }
+          
+          /* FIXED: Better touch targets */
+          input, select, button {
+            touch-action: manipulation;
+          }
+          
+          /* FIXED: Smooth animations */
+          .events-grid > div {
+            animation: fadeInUp 0.4s ease forwards;
+            opacity: 0;
+          }
+          
+          .events-grid > div:nth-child(1) { animation-delay: 0.05s; }
+          .events-grid > div:nth-child(2) { animation-delay: 0.1s; }
+          .events-grid > div:nth-child(3) { animation-delay: 0.15s; }
+          .events-grid > div:nth-child(4) { animation-delay: 0.2s; }
+          .events-grid > div:nth-child(5) { animation-delay: 0.25s; }
+          .events-grid > div:nth-child(6) { animation-delay: 0.3s; }
+          
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
             }
           }
         `}
