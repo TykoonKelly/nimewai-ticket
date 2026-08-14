@@ -4,7 +4,7 @@
   "description": "Backend server for Nimewai Ticket App with M-Pesa integration",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "sh start.sh",
     "dev": "node server.js",
     "start:ngrok": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
