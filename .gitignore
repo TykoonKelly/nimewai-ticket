@@ -1,24 +1,259 @@
-# Logs
-logs
+# ============================================
+# NIMEWAI TICKET APP - .gitignore
+# ============================================
+
+# ============================================
+# DEPENDENCIES
+# ============================================
+node_modules/
+.pnp/
+.pnp.js
+.pnpm/
+.yarn/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+backend/package-lock.json
+
+# ============================================
+# BUILD OUTPUT
+# ============================================
+dist/
+build/
+out/
+.next/
+/.output/
+*.tsbuildinfo
+
+# ============================================
+# ENVIRONMENT VARIABLES
+# ============================================
+# Frontend environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Backend environment files
+backend/.env
+backend/.env.local
+backend/.env.*.local
+
+# Firebase service account (CRITICAL - NEVER commit this!)
+# This file contains your Firebase Admin SDK private key
+backend/firebase-service-account.json
+*.firebase-service-account.json
+firebase-service-account.json
+
+# ============================================
+# FIREBASE
+# ============================================
+firebase-debug.log
+.firebase/
+.firebase.json
+.firebaserc
+*.firebase.json
+
+# ============================================
+# LOGS
+# ============================================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+backend/logs/
+backend/*.log
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ============================================
+# OS FILES
+# ============================================
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+*.orig
+*.rej
+
+# ============================================
+# EDITOR FILES
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.~lock.*
+*.sublime-*
+*.iml
+.project
+.classpath
+.settings/
+.vscode/settings.json
+.vscode/launch.json
+
+# ============================================
+# TESTING
+# ============================================
+coverage/
+.nyc_output/
+.cypress/
+cypress/videos/
+cypress/screenshots/
+test-results/
+jest.config.js
+
+# ============================================
+# CACHE
+# ============================================
+.cache/
+.parcel-cache/
+.vite/
+.vite-cache/
+.eslintcache
+*.cache
+.turbo
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+tmp/
+temp/
+*.tmp
+*.pid
+*.seed
+*.pid.lock
+.quarantine
+
+# ============================================
+# SECURITY / CERTIFICATES
+# ============================================
+*.pem
+*.key
+*.crt
+*.csr
+*.cer
+*.p12
+*.pfx
+*.jks
+
+# ============================================
+# BACKEND SPECIFIC
+# ============================================
+backend/node_modules/
+backend/dist/
+backend/build/
+backend/tmp/
+backend/temp/
+backend/uploads/
+backend/backup/
+backend/*.sqlite
+backend/*.db
+backend/*.sqlite3
+
+# M-Pesa callback test files
+backend/mpesa-callback-test.json
+backend/payments.json
+backend/payments-test.json
+backend/test-*.json
+
+# ============================================
+# DEPLOYMENT
+# ============================================
+.netlify/
+*.netlify
+.vercel/
+*.vercel
+.heroku/
+*.heroku
+.railway/
+*.railway
+.render/
+*.render
+
+# ============================================
+# NGINX / SERVER
+# ============================================
+nginx.conf
+*.conf
+*.conf.template
+
+# ============================================
+# NGrok
+# ============================================
+ngrok.log
+ngrok.yml
+.ngrok2/
+
+# ============================================
+# DOCUMENTATION
+# ============================================
+*.md.backup
+*.md.bak
+docs/_build/
+docs/venv/
+
+# ============================================
+# MISC
+# ============================================
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swn
+*.swo
+*.swp
+*.tmp
+*.temp
+*~
+~$*
+.DS_Store
+.lock-wscript
+.versions
+*.sass-cache
+
+# ============================================
+# DEVELOPMENT TOOLS
+# ============================================
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# ============================================
+# NPM / YARN
+# ============================================
+.npm/
+.npm-cache/
+.yarn-cache/
+.yarn-integrity
+.yarn-metadata.json
+.yarnclean
+
+# ============================================
+# EXTERNAL SERVICES
+# ============================================
+# Sentry
+.sentrycli/
+.sentry/
+
+# Datadog
+.datadog/
+
+# ============================================
+# AUTO-GENERATED FILES
+# ============================================
+*.generated.*
+*.auto.*
+*-stubs/

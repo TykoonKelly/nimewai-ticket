@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import Cart from './pages/Cart';
 import Organizers from './pages/Organizers';
 import EventDetails from './component/events/EventDetails';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 // Admin Pages
 import AdminLogin from './pages/admin/Adminlogin';
@@ -42,6 +43,7 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
 
           {/* Admin Portal - Hidden Routes */}
           <Route path="/login/admin" element={<AdminLogin />} />

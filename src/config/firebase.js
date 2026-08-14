@@ -30,22 +30,41 @@ import {
   orderBy,
   limit
 } from 'firebase/firestore';
+import env from '../utils/env'; // Import the environment handler
 
+// ============================================
+// FIREBASE CONFIGURATION
+// ============================================
+
+// Get Firebase config from environment variables with fallbacks
 const firebaseConfig = {
-  apiKey: "AIzaSyAsqgHT8svju3l-HvnOKa_vaQpYU07OcP0",
-  authDomain: "nimewai-ticket.firebaseapp.com",
-  projectId: "nimewai-ticket",
-  storageBucket: "nimewai-ticket.firebasestorage.app",
-  messagingSenderId: "44992884418",
-  appId: "1:44992884418:web:813dc4c60e3b746bcd155b",
-  measurementId: "G-F9MNHQ47GY"
+  apiKey: env.get('FIREBASE_API_KEY') || "AIzaSyAsqgHT8svju3l-HvnOKa_vaQpYU07OcP0",
+  authDomain: env.get('FIREBASE_AUTH_DOMAIN') || "nimewai-ticket.firebaseapp.com",
+  projectId: env.get('FIREBASE_PROJECT_ID') || "nimewai-ticket",
+  storageBucket: env.get('FIREBASE_STORAGE_BUCKET') || "nimewai-ticket.firebasestorage.app",
+  messagingSenderId: env.get('FIREBASE_MESSAGING_SENDER_ID') || "44992884418",
+  appId: env.get('FIREBASE_APP_ID') || "1:44992884418:web:813dc4c60e3b746bcd155b",
+  measurementId: env.get('FIREBASE_MEASUREMENT_ID') || "G-F9MNHQ47GY"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
-const analytics = getAnalytics(app);
+
+// Initialize Analytics only in browser environment
+let analytics = null;
+if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+  try {
+    analytics = getAnalytics(app);
+  } catch (error) {
+    console.warn('⚠️ Analytics not available:', error.message);
+  }
+}
+
+console.log(`🔥 Firebase initialized (${env.getEnvironment()})`);
+console.log(`📁 Project: ${firebaseConfig.projectId}`);
 
 // ============================================
 // AUTHENTICATION FUNCTIONS
@@ -510,6 +529,9 @@ export const getEventTickets = async (eventId) => {
     // Verify user is event creator
     const { event, error } = await getEventById(eventId);
     if (error) throw new Error(error);
+    if (!event) throw new Error('Event not found');
+    
+    // Check if user is the event creator
     if (event.createdBy !== user.uid) {
       throw new Error('You are not authorized to view these tickets');
     }
@@ -557,4 +579,10 @@ const getErrorMessage = (errorCode) => {
 // EXPORTS
 // ============================================
 
-export { auth, db, onAuthStateChanged, googleProvider };
+export { 
+  auth, 
+  db, 
+  onAuthStateChanged, 
+  googleProvider,
+  analytics 
+};

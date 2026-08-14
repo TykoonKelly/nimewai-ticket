@@ -9,11 +9,26 @@ import {
   MapPin, 
   Ticket, 
   Lock,
-  CheckCircle
+  CheckCircle,
+  Mail,
+  User
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { ALL_EVENTS } from '../data/events';
 import { getEventImage } from '../utils/eventImages';
+import MpesaCheckoutModal from '../component/MpesaCheckoutModal';
+import { auth, db } from '../config/firebase';
+import { 
+  collection, 
+  addDoc, 
+  serverTimestamp, 
+  doc, 
+  getDoc,
+  setDoc,
+  updateDoc
+} from 'firebase/firestore';
+import { signInAnonymously } from 'firebase/auth';
+import mpesaService from '../services/mpesaService';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -27,6 +42,13 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showMpesaModal, setShowMpesaModal] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState(null);
+  const [checkoutId, setCheckoutId] = useState(null);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [showGuestEmailPrompt, setShowGuestEmailPrompt] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     const enrichedItems = items.map(cartItem => {
@@ -54,7 +76,8 @@ export default function Cart() {
         eventCity: event?.city || '',
         price: price,
         quantity: quantity,
-        totalPrice: price * quantity
+        totalPrice: price * quantity,
+        eventData: event
       };
     });
     
@@ -74,12 +97,288 @@ export default function Cart() {
     }
   };
 
-  const handleCheckout = () => {
+  /**
+   * Get the authentication token for API calls
+   */
+  const getAuthToken = async () => {
+    const user = auth.currentUser;
+    if (!user) return null;
+    return await user.getIdToken();
+  };
+
+  /**
+   * Create order in Firebase before initiating payment
+   * Uses the backend API with authentication
+   */
+  const createOrderInBackend = async (orderData) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('Please log in to continue');
+      }
+
+      const token = await getAuthToken();
+      
+      const response = await fetch('http://localhost:5000/api/order/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create order');
+      }
+
+      const data = await response.json();
+      console.log('✅ Order created:', data);
+      return data;
+
+    } catch (error) {
+      console.error('❌ Error creating order:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Handle guest checkout - create anonymous session
+   */
+  const createGuestSession = async () => {
+    try {
+      // First, check if we already have an anonymous user
+      if (auth.currentUser && auth.currentUser.isAnonymous) {
+        console.log('✅ Already have guest session:', auth.currentUser.uid);
+        return auth.currentUser;
+      }
+
+      // Sign in anonymously
+      const userCredential = await signInAnonymously(auth);
+      const guestUser = userCredential.user;
+      
+      console.log('✅ Guest session created:', guestUser.uid);
+      
+      // Store guest info in Firestore
+      const guestUserData = {
+        uid: guestUser.uid,
+        isGuest: true,
+        createdAt: serverTimestamp(),
+        role: 'guest',
+        email: guestEmail || 'guest@temporary.com'
+      };
+      
+      await setDoc(doc(db, 'users', guestUser.uid), guestUserData);
+      console.log('✅ Guest user data saved to Firestore');
+      
+      setIsGuest(true);
+      return guestUser;
+      
+    } catch (error) {
+      console.error('❌ Error creating guest session:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Handle checkout with guest support
+   */
+  const handleCheckout = async () => {
+    if (items.length === 0) {
+      alert('Your cart is empty!');
+      return;
+    }
+
+    // Check if user is logged in
+    const user = auth.currentUser;
+    
+    // If not logged in, offer guest checkout option
+    if (!user) {
+      // Show email prompt first
+      const emailInput = prompt(
+        'You are checking out as a guest. Please enter your email address to receive your tickets:\n\n' +
+        '(Your tickets will be sent to this email after successful payment)'
+      );
+      
+      if (emailInput === null) {
+        // User cancelled
+        return;
+      }
+      
+      // Validate email
+      if (!emailInput || !emailInput.includes('@')) {
+        alert('Please enter a valid email address to receive your tickets.');
+        return;
+      }
+      
+      setGuestEmail(emailInput);
+      setShowGuestEmailPrompt(false);
+      
+      // Ask if they want to continue as guest
+      const shouldContinueAsGuest = window.confirm(
+        `📧 Tickets will be sent to: ${emailInput}\n\n` +
+        'Would you like to continue as a guest?\n\n' +
+        'Click "OK" to continue as guest, or "Cancel" to login/sign up.'
+      );
+      
+      if (!shouldContinueAsGuest) {
+        localStorage.setItem('redirectAfterLogin', '/cart');
+        navigate('/login', { 
+          state: { 
+            from: '/cart',
+            message: 'Please login to complete your purchase'
+          } 
+        });
+        return;
+      }
+      
+      // Create guest session
+      try {
+        await createGuestSession();
+        console.log('✅ Guest session ready');
+      } catch (guestError) {
+        console.error('❌ Error creating guest session:', guestError);
+        alert('Unable to create guest session. Please try logging in instead.');
+        navigate('/login', { 
+          state: { 
+            from: '/cart',
+            message: 'Please login to complete your purchase'
+          } 
+        });
+        return;
+      }
+    }
+
     setIsCheckingOut(true);
-    setTimeout(() => {
+
+    try {
+      // First, check if backend is reachable
+      const healthCheck = await mpesaService.checkBackendHealth();
+      if (!healthCheck.success) {
+        throw new Error('Cannot connect to server. Please ensure the backend is running on port 5000.');
+      }
+
+      // Calculate totals
+      const subtotal = getTotalPrice() || 0;
+      const serviceFee = Math.round(subtotal * 0.05);
+      const total = subtotal + serviceFee;
+
+      const firstItem = cartItems[0];
+      const event = firstItem.eventData;
+
+      // Get user info - handle both logged-in and guest users
+      const currentUser = auth.currentUser;
+      const userId = currentUser?.uid || 'guest_user';
+      const userEmail = currentUser?.email || guestEmail || 'guest@temporary.com';
+      const userName = currentUser?.displayName || 'Guest User';
+      const isGuestUser = currentUser?.isAnonymous || false;
+
+      // If guest, store email in Firestore
+      if (isGuestUser && guestEmail) {
+        try {
+          const userRef = doc(db, 'users', userId);
+          await updateDoc(userRef, {
+            email: guestEmail,
+            guestEmail: guestEmail
+          });
+          console.log('✅ Guest email saved to Firestore');
+        } catch (updateError) {
+          console.warn('Could not update guest email:', updateError);
+        }
+      }
+
+      const orderData = {
+        eventId: firstItem.eventId,
+        eventTitle: firstItem.eventTitle,
+        eventDate: firstItem.eventDate,
+        eventVenue: firstItem.eventVenue,
+        eventCity: firstItem.eventCity,
+        eventCreatorId: event?.createdBy || 'user-1',
+        quantity: getTotalItems(),
+        totalPrice: total,
+        email: userEmail,
+        userName: userName,
+        isGuest: isGuestUser,
+        userId: userId,
+        guestEmail: isGuestUser ? guestEmail : null,
+        ticketDetails: cartItems.map(item => ({
+          tierName: item.tierName,
+          levelName: item.levelName,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
+
+      console.log('📝 Order data being sent:', orderData);
+
+      const result = await mpesaService.createOrder(orderData);
+      
+      setCurrentOrderId(result.orderId);
+      setCheckoutId(result.checkoutId);
+
+      // Store guest user ID and email for later use
+      if (isGuestUser) {
+        sessionStorage.setItem('guestUserId', userId);
+        sessionStorage.setItem('guestEmail', guestEmail);
+      }
+
+      setShowMpesaModal(true);
+      
+    } catch (error) {
+      console.error('❌ Error during checkout:', error);
+      
+      // Show user-friendly error message
+      let errorMessage = 'There was an error processing your order. Please try again.';
+      if (error.message.includes('Cannot connect to server')) {
+        errorMessage = 'Cannot connect to the payment server. Please ensure the backend is running on port 5000.';
+      } else if (error.message.includes('login')) {
+        errorMessage = 'Please login again to continue.';
+      } else if (error.message.includes('User not authenticated')) {
+        errorMessage = 'Please login or continue as guest to complete your purchase.';
+      }
+      
+      alert(errorMessage);
       setIsCheckingOut(false);
-      console.log('Proceeding to checkout with items:', items);
-    }, 1500);
+    }
+  };
+
+  const handleMpesaSuccess = async (paymentData) => {
+    console.log('Payment successful:', paymentData);
+    setPaymentSuccess(true);
+    setShowMpesaModal(false);
+    setIsCheckingOut(false);
+    
+    try {
+      // Save guest email to session for success page
+      if (guestEmail) {
+        sessionStorage.setItem('guestEmail', guestEmail);
+      }
+      
+      setTimeout(() => {
+        clearCart();
+        navigate('/payment-success', { 
+          state: { 
+            items: cartItems,
+            paymentData: paymentData,
+            orderId: currentOrderId,
+            email: guestEmail || auth.currentUser?.email
+          } 
+        });
+      }, 2000);
+    } catch (error) {
+      console.error('Error handling payment success:', error);
+    }
+  };
+
+  const handleMpesaError = (error) => {
+    console.error('Payment error:', error);
+    setIsCheckingOut(false);
+  };
+
+  const handleMpesaClose = () => {
+    setShowMpesaModal(false);
+    setIsCheckingOut(false);
   };
 
   const formatPrice = (price) => {
@@ -159,7 +458,7 @@ export default function Cart() {
             borderRadius: '24px',
             border: '2px dashed #e5e7eb',
             background: 'rgba(255,255,255,0.5)',
-            padding: '32px 20px', // FIXED: Better mobile padding
+            padding: '32px 20px',
             textAlign: 'center'
           }}>
             <div style={{
@@ -177,7 +476,7 @@ export default function Cart() {
             </div>
             <h2 style={{
               marginTop: '20px',
-              fontSize: '22px', // FIXED: Smaller on mobile
+              fontSize: '22px',
               fontWeight: 800,
               color: '#111827'
             }}>
@@ -201,13 +500,13 @@ export default function Cart() {
                 borderRadius: '9999px',
                 background: 'linear-gradient(to right, #7c3aed, #6d28d9)',
                 padding: '12px 24px',
-                fontSize: '16px', // FIXED: Larger for touch
+                fontSize: '16px',
                 fontWeight: 700,
                 color: '#ffffff',
                 textDecoration: 'none',
                 boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)',
                 transition: 'all 0.3s ease',
-                minHeight: '48px', // FIXED: Touch-friendly
+                minHeight: '48px',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'linear-gradient(to right, #6d28d9, #5b21b6)';
@@ -234,47 +533,38 @@ export default function Cart() {
       minHeight: '100vh', 
       background: 'linear-gradient(to bottom, #f9fafb, #ffffff)',
       fontFamily: "'Manrope', sans-serif",
-      overflowX: 'hidden', // FIXED: Prevent horizontal scroll
+      overflowX: 'hidden',
       maxWidth: '100%',
     }}>
-      {/* Background decorative elements - FIXED: Hide on mobile */}
-      <div
-        style={{
-          pointerEvents: 'none',
-          position: 'absolute',
-          top: '20%',
-          right: 0,
-          height: '288px',
-          width: '288px',
-          transform: 'translateX(33%)',
-          borderRadius: '50%',
-          background: 'rgba(124, 58, 237, 0.1)',
-          filter: 'blur(80px)',
-          zIndex: 0,
-          display: 'none', // FIXED: Hidden on mobile
-        }}
-        className="decorative-blob"
-      />
-      <div
-        style={{
-          pointerEvents: 'none',
-          position: 'absolute',
-          bottom: '20%',
-          left: 0,
-          height: '288px',
-          width: '288px',
-          transform: 'translateX(-33%)',
-          borderRadius: '50%',
-          background: 'rgba(236, 72, 153, 0.1)',
-          filter: 'blur(80px)',
-          zIndex: 0,
-          display: 'none', // FIXED: Hidden on mobile
-        }}
-        className="decorative-blob"
-      />
-
-      {/* Header Section */}
       <NavSection />
+
+      {/* Guest Info Banner */}
+      {!auth.currentUser && (
+        <div style={{
+          maxWidth: '1280px',
+          margin: '0 auto',
+          padding: '0 16px',
+          marginTop: '16px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+            padding: '12px 16px',
+            border: '1px solid #f59e0b'
+          }}>
+            <Mail size={20} color="#d97706" />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '14px', color: '#92400e', margin: 0 }}>
+                <strong>Guest Checkout Available:</strong> You can purchase tickets without logging in. 
+                Your tickets will be sent to the email you provide during payment.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cart Content */}
       <div style={{ 
@@ -282,16 +572,16 @@ export default function Cart() {
         zIndex: 1, 
         maxWidth: '1280px', 
         margin: '0 auto', 
-        padding: '24px 12px', // FIXED: Reduced padding on mobile
+        padding: '24px 12px',
         maxWidth: '100%',
         boxSizing: 'border-box',
       }}>
         <div style={{ 
           display: 'flex', 
-          flexDirection: 'column', // FIXED: Stack on mobile
-          alignItems: 'flex-start', // FIXED: Left align on mobile
-          gap: '12px', // FIXED: Gap between elements
-          marginBottom: '24px', // FIXED: Reduced margin
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '12px',
+          marginBottom: '24px',
         }}>
           <div>
             <p style={{
@@ -305,7 +595,7 @@ export default function Cart() {
             </p>
             <h1 style={{
               marginTop: '4px',
-              fontSize: '24px', // FIXED: Smaller on mobile
+              fontSize: '24px',
               fontWeight: 800,
               letterSpacing: '-0.025em',
               color: '#b8860b'
@@ -313,7 +603,7 @@ export default function Cart() {
               Your cart
             </h1>
             <p style={{
-              marginTop: '4px', // FIXED: Reduced margin
+              marginTop: '4px',
               fontSize: '14px',
               color: '#6b7280'
             }}>
@@ -333,15 +623,15 @@ export default function Cart() {
                 borderRadius: '9999px',
                 border: '1px solid #e5e7eb',
                 background: 'rgba(255,255,255,0.8)',
-                padding: '10px 16px', // FIXED: Larger touch target
-                fontSize: '14px', // FIXED: Larger for touch
+                padding: '10px 16px',
+                fontSize: '14px',
                 fontWeight: 600,
                 color: '#6b7280',
                 backdropFilter: 'blur(4px)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 fontFamily: "'Manrope', sans-serif",
-                minHeight: '44px', // FIXED: Touch-friendly
+                minHeight: '44px',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = '#ef4444';
@@ -360,15 +650,15 @@ export default function Cart() {
 
         <div style={{ 
           display: 'flex', 
-          flexDirection: 'column', // FIXED: Stack on mobile
-          gap: '24px', // FIXED: Reduced gap
+          flexDirection: 'column',
+          gap: '24px',
         }} className="cart-grid">
           {/* Cart Items */}
           <div style={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            gap: '16px', // FIXED: Reduced gap
-            width: '100%', // FIXED: Full width
+            gap: '16px',
+            width: '100%',
           }}>
             {eventGroups.map((group) => (
               <EventGroup 
@@ -380,18 +670,18 @@ export default function Cart() {
             ))}
           </div>
 
-          {/* Order Summary - FIXED: Full width on mobile */}
+          {/* Order Summary */}
           <aside style={{ 
-            alignSelf: 'stretch', // FIXED: Full width
-            width: '100%', // FIXED: Full width
+            alignSelf: 'stretch',
+            width: '100%',
           }} className="cart-sidebar">
             <div style={{
               borderRadius: '24px',
               border: '1px solid #e5e7eb',
               background: '#ffffff',
-              padding: '20px', // FIXED: Better padding
+              padding: '20px',
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              width: '100%', // FIXED: Full width
+              width: '100%',
               boxSizing: 'border-box',
             }}>
               <h3 style={{
@@ -402,7 +692,7 @@ export default function Cart() {
                 Order summary
               </h3>
 
-              <div style={{ marginTop: '16px' }}> {/* FIXED: Reduced margin */}
+              <div style={{ marginTop: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>
                   <span style={{ color: '#6b7280' }}>Subtotal</span>
                   <span style={{ fontWeight: 600, color: '#111827' }}>
@@ -435,7 +725,7 @@ export default function Cart() {
                   Total
                 </span>
                 <span style={{
-                  fontSize: '22px', // FIXED: Slightly smaller on mobile
+                  fontSize: '22px',
                   fontWeight: 800,
                   color: '#7c3aed'
                 }}>
@@ -443,12 +733,35 @@ export default function Cart() {
                 </span>
               </div>
 
+              {/* Guest Checkout Info */}
+              {!auth.currentUser && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  background: '#fef3c7',
+                  border: '1px solid #f59e0b'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Mail size={16} color="#d97706" />
+                    <p style={{ 
+                      fontSize: '12px', 
+                      color: '#92400e', 
+                      margin: 0,
+                      lineHeight: 1.4
+                    }}>
+                      <strong>Guest Checkout:</strong> You'll need to provide your email to receive tickets.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleCheckout}
                 disabled={isCheckingOut}
                 style={{
-                  marginTop: '16px', // FIXED: Reduced margin
+                  marginTop: '16px',
                   width: '100%',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -456,8 +769,8 @@ export default function Cart() {
                   gap: '8px',
                   borderRadius: '9999px',
                   background: 'linear-gradient(to right, #7c3aed, #6d28d9)',
-                  padding: '14px 20px', // FIXED: Larger touch target
-                  fontSize: '16px', // FIXED: Larger for touch
+                  padding: '14px 20px',
+                  fontSize: '16px',
                   fontWeight: 700,
                   color: '#ffffff',
                   border: 'none',
@@ -466,7 +779,7 @@ export default function Cart() {
                   transition: 'all 0.3s ease',
                   opacity: isCheckingOut ? 0.5 : 1,
                   fontFamily: "'Manrope', sans-serif",
-                  minHeight: '52px', // FIXED: Touch-friendly
+                  minHeight: '52px',
                 }}
                 onMouseEnter={(e) => {
                   if (!isCheckingOut) {
@@ -499,7 +812,7 @@ export default function Cart() {
                 ) : (
                   <>
                     <Lock size={16} />
-                    Secure checkout
+                    Pay with M-Pesa
                   </>
                 )}
               </button>
@@ -510,14 +823,30 @@ export default function Cart() {
                 fontSize: '11px',
                 color: '#9ca3af'
               }}>
-                QR tickets delivered instantly to your email.
+                Secure payment via M-Pesa. Tickets will be sent to your email.
               </p>
             </div>
           </aside>
         </div>
       </div>
 
-      {/* FIXED: Comprehensive responsive styles */}
+      {/* M-Pesa Checkout Modal */}
+      <MpesaCheckoutModal
+        isOpen={showMpesaModal}
+        onClose={handleMpesaClose}
+        amount={total}
+        items={cartItems.map(item => ({
+          ...item,
+          name: item.tierName || 'Ticket',
+          price: item.price,
+        }))}
+        onSuccess={handleMpesaSuccess}
+        onError={handleMpesaError}
+        checkoutId={checkoutId}
+        guestEmail={guestEmail}
+        isGuest={auth.currentUser?.isAnonymous || false}
+      />
+
       <style>
         {`
           @keyframes spin {
@@ -525,14 +854,12 @@ export default function Cart() {
             to { transform: rotate(360deg); }
           }
           
-          /* FIXED: Show decorative blobs on tablet/desktop */
           @media (min-width: 768px) {
             .decorative-blob {
               display: block !important;
             }
           }
           
-          /* FIXED: Desktop grid layout */
           @media (min-width: 1024px) {
             .cart-grid {
               flex-direction: row !important;
@@ -550,18 +877,12 @@ export default function Cart() {
             .cart-sidebar > div {
               width: 100% !important;
             }
-            
-            .cart-items-container {
-              flex: 1 !important;
-            }
           }
           
-          /* FIXED: Prevent any overflow */
           * {
             box-sizing: border-box;
           }
           
-          /* FIXED: Ensure images don't overflow */
           .event-image {
             overflow: hidden !important;
           }
@@ -571,7 +892,6 @@ export default function Cart() {
             height: auto !important;
           }
           
-          /* FIXED: Better touch targets on mobile */
           @media (max-width: 640px) {
             button, 
             a,
@@ -590,7 +910,7 @@ export default function Cart() {
   );
 }
 
-// Navigation Section Component - FIXED: Better mobile padding
+// Navigation Section Component
 function NavSection() {
   const navigate = useNavigate();
   
@@ -599,9 +919,8 @@ function NavSection() {
       position: 'relative',
       overflow: 'hidden',
       background: 'linear-gradient(135deg, #6d28d9, #7c3aed, #8b5cf6)',
-      padding: '24px 12px', // FIXED: Better mobile padding
+      padding: '24px 12px',
     }}>
-      {/* Decorative elements - FIXED: Hidden on mobile */}
       <div style={{
         pointerEvents: 'none',
         position: 'absolute',
@@ -613,7 +932,7 @@ function NavSection() {
         borderRadius: '50%',
         background: 'rgba(245, 158, 11, 0.3)',
         filter: 'blur(64px)',
-        display: 'none', // FIXED: Hidden on mobile
+        display: 'none',
       }}
       className="nav-decorative" />
       <div style={{
@@ -627,7 +946,7 @@ function NavSection() {
         borderRadius: '50%',
         background: 'rgba(139, 92, 246, 0.3)',
         filter: 'blur(64px)',
-        display: 'none', // FIXED: Hidden on mobile
+        display: 'none',
       }}
       className="nav-decorative" />
       
@@ -646,15 +965,15 @@ function NavSection() {
             borderRadius: '9999px',
             border: '1px solid rgba(255,255,255,0.2)',
             background: 'rgba(255,255,255,0.1)',
-            padding: '8px 16px', // FIXED: Larger touch target
-            fontSize: '14px', // FIXED: Larger for touch
+            padding: '8px 16px',
+            fontSize: '14px',
             fontWeight: 600,
             color: '#ffffff',
             backdropFilter: 'blur(4px)',
             cursor: 'pointer',
             transition: 'all 0.2s',
             fontFamily: "'Manrope', sans-serif",
-            minHeight: '44px', // FIXED: Touch-friendly
+            minHeight: '44px',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
@@ -668,9 +987,9 @@ function NavSection() {
           <ArrowLeft size={14} />
           Keep browsing events
         </button>
-        <div style={{ marginTop: '12px' }}> {/* FIXED: Reduced margin */}
+        <div style={{ marginTop: '12px' }}>
           <h1 style={{
-            fontSize: '22px', // FIXED: Smaller on mobile
+            fontSize: '22px',
             fontWeight: 800,
             letterSpacing: '-0.025em',
             color: '#ffffff'
@@ -680,7 +999,6 @@ function NavSection() {
         </div>
       </div>
 
-      {/* FIXED: Show decorations on tablet/desktop */}
       <style>
         {`
           @media (min-width: 768px) {
@@ -700,7 +1018,7 @@ function NavSection() {
   );
 }
 
-// Event Group Component - FIXED: Better mobile layout
+// Event Group Component
 function EventGroup({ group, onRemoveItem, formatPrice }) {
   const { items, eventTitle, eventDate, eventVenue, eventCity, image, eventSlug } = group;
   const eventSubtotal = items.reduce((s, item) => s + (Number(item.price) || 0) * item.quantity, 0);
@@ -708,13 +1026,13 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
   return (
     <article style={{
       overflow: 'hidden',
-      borderRadius: '20px', // FIXED: Smaller radius on mobile
+      borderRadius: '20px',
       border: '1px solid #e5e7eb',
       background: '#ffffff',
       boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
       transition: 'all 0.3s ease',
-      width: '100%', // FIXED: Full width
-      maxWidth: '100%', // FIXED: Prevent overflow
+      width: '100%',
+      maxWidth: '100%',
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
@@ -722,29 +1040,27 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
     onMouseLeave={(e) => {
       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
     }}>
-      {/* Event Header - FIXED: Better mobile layout */}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px', // FIXED: Reduced gap
+        gap: '12px',
         borderBottom: '1px solid #e5e7eb',
-        padding: '16px', // FIXED: Better padding
+        padding: '16px',
       }} className="event-header">
         <div style={{
           display: 'flex',
-          flexDirection: 'column', // Mobile: stack vertically
-          gap: '12px', // FIXED: Reduced gap
+          flexDirection: 'column',
+          gap: '12px',
           width: '100%'
         }} className="event-header-inner">
-          {/* Event Image - FIXED: Better sizing */}
           <div style={{
             position: 'relative',
-            height: '120px', // FIXED: Fixed height on mobile
+            height: '120px',
             width: '100%',
             overflow: 'hidden',
-            borderRadius: '12px', // FIXED: Smaller radius
+            borderRadius: '12px',
             background: 'linear-gradient(to bottom right, #7c3aed, #ec4899)',
-            flexShrink: 0, // FIXED: Prevent shrinking
+            flexShrink: 0,
           }} className="event-image">
             {image ? (
               <img
@@ -765,18 +1081,17 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
             )}
           </div>
           
-          {/* Event Info - FIXED: Better layout */}
           <div style={{ 
             minWidth: 0, 
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px', // FIXED: Tighter spacing
+            gap: '4px',
           }}>
             <Link
               to={eventSlug}
               style={{
-                fontSize: '16px', // FIXED: Smaller on mobile
+                fontSize: '16px',
                 fontWeight: 800,
                 color: '#111827',
                 textDecoration: 'none',
@@ -793,8 +1108,8 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               color: '#6b7280',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px', // FIXED: Smaller gap
-              flexWrap: 'wrap', // FIXED: Wrap on small screens
+              gap: '6px',
+              flexWrap: 'wrap',
             }}>
               <Calendar size={12} />
               <span>{eventDate}</span>
@@ -805,10 +1120,9 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
             </p>
           </div>
           
-          {/* Event Subtotal - FIXED: Better alignment */}
           <div style={{ 
-            textAlign: 'left', // FIXED: Left align on mobile
-            marginTop: '4px', // FIXED: Small margin
+            textAlign: 'left',
+            marginTop: '4px',
           }}>
             <p style={{
               fontSize: '10px',
@@ -820,7 +1134,7 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               Event subtotal
             </p>
             <p style={{
-              fontSize: '18px', // FIXED: Slightly larger
+              fontSize: '18px',
               fontWeight: 800,
               color: '#7c3aed'
             }}>
@@ -830,12 +1144,11 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
         </div>
       </div>
 
-      {/* Ticket Items - FIXED: Better mobile layout */}
       <ul style={{ 
         listStyle: 'none', 
         margin: 0, 
         padding: 0,
-        width: '100%', // FIXED: Full width
+        width: '100%',
       }}>
         {items.map((item, index) => {
           const itemPrice = Number(item.price) || 0;
@@ -846,9 +1159,9 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               key={item.id || `${item.eventId}-${item.tierName}-${index}`}
               style={{
                 display: 'flex',
-                flexDirection: 'column', // Mobile: stack vertically
-                gap: '8px', // FIXED: Reduced gap
-                padding: '12px 16px', // FIXED: Better padding
+                flexDirection: 'column',
+                gap: '8px',
+                padding: '12px 16px',
                 borderTop: '1px solid #f3f4f6',
                 width: '100%',
                 boxSizing: 'border-box',
@@ -858,7 +1171,7 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               <div style={{ 
                 minWidth: 0, 
                 flex: 1,
-                width: '100%', // FIXED: Full width
+                width: '100%',
               }}>
                 <p style={{
                   fontSize: '14px',
@@ -874,7 +1187,7 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  flexWrap: 'wrap', // FIXED: Wrap on small screens
+                  flexWrap: 'wrap',
                 }}>
                   <Ticket size={12} />
                   <span>{item.levelName}</span>
@@ -887,13 +1200,13 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between', // FIXED: Space between
-                width: '100%', // FIXED: Full width
+                justifyContent: 'space-between',
+                width: '100%',
                 gap: '12px',
               }} className="ticket-controls">
                 <div style={{
                   minWidth: '80px',
-                  textAlign: 'left', // FIXED: Left align on mobile
+                  textAlign: 'left',
                   fontSize: '14px',
                   fontWeight: 800,
                   color: '#7c3aed'
@@ -907,15 +1220,15 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
                   style={{
                     display: 'grid',
                     placeItems: 'center',
-                    minWidth: '44px', // FIXED: Touch-friendly
-                    minHeight: '44px', // FIXED: Touch-friendly
+                    minWidth: '44px',
+                    minHeight: '44px',
                     borderRadius: '9999px',
                     border: 'none',
                     background: 'transparent',
                     color: '#9ca3af',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    padding: '8px', // FIXED: Better padding
+                    padding: '8px',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = '#fee2e2';
@@ -934,7 +1247,6 @@ function EventGroup({ group, onRemoveItem, formatPrice }) {
         })}
       </ul>
 
-      {/* FIXED: Responsive styles for EventGroup */}
       <style>
         {`
           @media (min-width: 640px) {

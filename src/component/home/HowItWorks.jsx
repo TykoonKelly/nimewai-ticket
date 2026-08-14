@@ -20,7 +20,7 @@ const HowItWorks = () => {
       number: "03",
       icon: QrCode,
       title: "Get your QR ticket",
-      description: "Tickets land in your inbox and Nimewahi wallet instantly. Show the QR code at the gate — no printing needed.",
+      description: "Tickets land in your inbox and Nimewai wallet instantly. Show the QR code at the gate — no printing needed.",
     },
     {
       number: "04",
@@ -119,7 +119,7 @@ const HowItWorks = () => {
               color: '#4b5563',
             }}
           >
-            We built Nimewahi Ticket to be so smooth, you'll wonder why ticketing was ever this hard.
+            We built Nimewai Ticket to be so smooth, you'll wonder why ticketing was ever this hard.
           </p>
         </div>
 
@@ -350,7 +350,7 @@ const HowItWorks = () => {
                   color: 'rgba(255,255,255,0.8)',
                 }}
               >
-                Join 500+ organizers using Nimewahi to run smooth, sold-out events — corporate or entertainment.
+                Join 500+ organizers using Nimewai to run smooth, sold-out events — corporate or entertainment.
               </p>
             </div>
             <Link
