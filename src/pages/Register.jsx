@@ -1,8 +1,9 @@
 // src/pages/Register.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User, CheckCircle, Ticket } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, CheckCircle } from 'lucide-react';
 import { signUp } from '../config/firebase';
+import logo from '/NTlogo1.png'; // ✅ IMPORT YOUR LOGO
 
 const Register = () => {
   const navigate = useNavigate();
@@ -221,32 +222,50 @@ const Register = () => {
           border: '1px solid rgba(124, 58, 237, 0.06)',
         }}
       >
-        {/* Logo */}
+        {/* Logo - UPDATED WITH YOUR IMAGE */}
         <Link
           to="/"
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '10px',
+            gap: '12px',
             textDecoration: 'none',
             marginBottom: '32px',
           }}
         >
           <div
             style={{
-              background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
+              width: '50px',
+              height: '50px',
+              borderRadius: '14px',
+              overflow: 'hidden',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '20px',
-              boxShadow: '0 4px 16px rgba(124, 58, 237, 0.3)',
+              boxShadow: '0 4px 16px rgba(124, 58, 237, 0.25)',
+              backgroundColor: '#2e1065', // Dark purple background
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(124, 58, 237, 0.25)';
             }}
           >
-            🎫
+            <img
+              src={logo}
+              alt="Nimewai Ticket Logo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                padding: '4px',
+              }}
+            />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
             <span
@@ -296,7 +315,7 @@ const Register = () => {
             textAlign: 'center',
           }}
         >
-          Join Nimewahi Ticket
+          Join Nimewai Ticket
         </p>
 
         {/* Firebase Error Message */}

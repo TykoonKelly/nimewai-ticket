@@ -2,10 +2,11 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useCart } from '../../hooks/useCart';
+import logo from '/NTlogo1.png'; // ✅ IMPORT YOUR LOGO HERE
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Replace with your auth state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { getTotalItems } = useCart();
   const cartCount = getTotalItems();
 
@@ -21,19 +22,18 @@ const Navbar = () => {
         }
         
         @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+
+        @keyframes logoEntrance {
+          from { opacity: 0; transform: scale(0.8) rotate(-10deg); }
+          to { opacity: 1; transform: scale(1) rotate(0); }
         }
 
         /* Mobile menu overlay */
@@ -63,7 +63,7 @@ const Navbar = () => {
           animation: slideDown 0.3s ease;
           overflow-y: auto;
           display: flex;
-          flex-direction: column; /* FIXED: Stack items vertically */
+          flex-direction: column;
         }
 
         .mobile-menu-panel .close-btn {
@@ -73,8 +73,8 @@ const Navbar = () => {
           cursor: pointer;
           color: #4b5563;
           padding: 4px 8px;
-          align-self: flex-end; /* FIXED: Keep close button at top right */
-          margin-bottom: 20px; /* FIXED: Space after close button */
+          align-self: flex-end;
+          margin-bottom: 20px;
         }
 
         .mobile-menu-panel .mobile-link {
@@ -86,7 +86,6 @@ const Navbar = () => {
           font-weight: 500;
           border-bottom: 1px solid #f3f4f6;
           transition: color 0.2s;
-          /* FIXED: Ensure proper order */
           order: 0;
         }
 
@@ -108,7 +107,6 @@ const Navbar = () => {
           font-weight: 600;
           text-decoration: none;
           transition: transform 0.2s;
-          /* FIXED: Push to bottom if needed, but keep in flow */
           margin-top: auto;
         }
 
@@ -129,7 +127,6 @@ const Navbar = () => {
           font-weight: 500;
         }
 
-        /* Menu items container - FIXED: Proper spacing */
         .mobile-menu-items {
           display: flex;
           flex-direction: column;
@@ -169,32 +166,24 @@ const Navbar = () => {
           transform: rotate(-45deg) translate(5px, -6px);
         }
 
+        /* Logo container animation */
+        .logo-container {
+          animation: logoEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
         /* Desktop styles */
         @media (max-width: 768px) {
-          .desktop-nav-links {
-            display: none !important;
-          }
-          .desktop-right-section {
-            display: none !important;
-          }
-          .mobile-hamburger {
-            display: flex !important;
-          }
+          .desktop-nav-links { display: none !important; }
+          .desktop-right-section { display: none !important; }
+          .mobile-hamburger { display: flex !important; }
         }
 
         @media (min-width: 769px) {
-          .mobile-hamburger {
-            display: none !important;
-          }
-          .desktop-nav-links {
-            display: flex !important;
-          }
-          .desktop-right-section {
-            display: flex !important;
-          }
+          .mobile-hamburger { display: none !important; }
+          .desktop-nav-links { display: flex !important; }
+          .desktop-right-section { display: flex !important; }
         }
 
-        /* FIXED: Additional mobile styles */
         @media (max-width: 480px) {
           .mobile-menu-panel {
             width: 100%;
@@ -245,23 +234,23 @@ const Navbar = () => {
         zIndex: 1000,
         fontFamily: "'Inter', sans-serif"
       }}>
-        {/* Logo Section - LEFT */}
+        {/* Logo Section - LEFT - USING YOUR LOGO */}
         <Link to="/" style={{
           display: 'flex',
           alignItems: 'center',
           textDecoration: 'none',
-          gap: '10px'
+          gap: '12px'
         }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-            width: '42px',
-            height: '42px',
+          <div className="logo-container" style={{
+            width: '50px',
+            height: '50px',
             borderRadius: '14px',
+            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '20px',
-            boxShadow: '0 4px 16px rgba(124, 58, 237, 0.35)',
+            boxShadow: '0 4px 16px rgba(124, 58, 237, 0.25)',
+            backgroundColor: '#2e1065', // Dark purple background
             transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}
           onMouseEnter={(e) => {
@@ -270,10 +259,21 @@ const Navbar = () => {
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'rotate(0deg) scale(1)';
-            e.currentTarget.style.boxShadow = '0 4px 16px rgba(124, 58, 237, 0.35)';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(124, 58, 237, 0.25)';
           }}>
-            🎫
+            {/* YOUR LOGO IMAGE */}
+            <img 
+              src={logo}
+              alt="Nimewai Ticket Logo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                padding: '2px'
+              }}
+            />
           </div>
+          
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -317,149 +317,50 @@ const Navbar = () => {
           transform: 'translateX(-50%)'
         }}>
           <Link to="/" style={{
-            color: '#4b5563',
-            textDecoration: 'none',
-            fontSize: '15px',
-            fontWeight: 500,
-            transition: 'color 0.2s'
-          }}
-          onMouseEnter={(e) => e.target.style.color = '#7c3aed'}
-          onMouseLeave={(e) => e.target.style.color = '#4b5563'}
-          >
+            color: '#4b5563', textDecoration: 'none', fontSize: '15px', fontWeight: 500, transition: 'color 0.2s'
+          }} onMouseEnter={(e) => e.target.style.color = '#7c3aed'} onMouseLeave={(e) => e.target.style.color = '#4b5563'}>
             Home
           </Link>
           
           <Link to="/events" style={{
-            color: '#4b5563',
-            textDecoration: 'none',
-            fontSize: '15px',
-            fontWeight: 500,
-            transition: 'color 0.2s'
-          }}
-          onMouseEnter={(e) => e.target.style.color = '#7c3aed'}
-          onMouseLeave={(e) => e.target.style.color = '#4b5563'}
-          >
+            color: '#4b5563', textDecoration: 'none', fontSize: '15px', fontWeight: 500, transition: 'color 0.2s'
+          }} onMouseEnter={(e) => e.target.style.color = '#7c3aed'} onMouseLeave={(e) => e.target.style.color = '#4b5563'}>
             Events
           </Link>
           
           <Link to="/about" style={{
-            color: '#4b5563',
-            textDecoration: 'none',
-            fontSize: '15px',
-            fontWeight: 500,
-            transition: 'color 0.2s'
-          }}
-          onMouseEnter={(e) => e.target.style.color = '#7c3aed'}
-          onMouseLeave={(e) => e.target.style.color = '#4b5563'}
-          >
+            color: '#4b5563', textDecoration: 'none', fontSize: '15px', fontWeight: 500, transition: 'color 0.2s'
+          }} onMouseEnter={(e) => e.target.style.color = '#7c3aed'} onMouseLeave={(e) => e.target.style.color = '#4b5563'}>
             About
           </Link>
         </div>
 
         {/* Right Side - Login + Cart (Desktop) */}
         <div className="desktop-right-section" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
+          display: 'flex', alignItems: 'center', gap: '12px'
         }}>
-          {/* LOGIN BUTTON */}
           {isLoggedIn ? (
-            <Link to="/profile" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              borderRadius: '50px',
-              textDecoration: 'none',
-              color: '#1f2937',
-              fontWeight: 500,
-              fontSize: '14px',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              border: '1px solid rgba(124, 58, 237, 0.1)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-            >
+            <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '50px', textDecoration: 'none', color: '#1f2937', fontWeight: 500, fontSize: '14px', backgroundColor: 'rgba(255, 255, 255, 0.8)', border: '1px solid rgba(124, 58, 237, 0.1)', transition: 'all 0.3s ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.15)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'; e.currentTarget.style.boxShadow = 'none'; }}>
               <span style={{ fontSize: '18px' }}>👤</span>
               Profile
             </Link>
           ) : (
-            <Link to="/login" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 20px',
-              borderRadius: '50px',
-              textDecoration: 'none',
-              color: '#7c3aed',
-              fontWeight: 600,
-              fontSize: '14px',
-              backgroundColor: 'rgba(124, 58, 237, 0.1)',
-              border: '1px solid rgba(124, 58, 237, 0.2)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#7c3aed';
-              e.currentTarget.style.color = 'white';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.1)';
-              e.currentTarget.style.color = '#7c3aed';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-            >
+            <Link to="/login" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 20px', borderRadius: '50px', textDecoration: 'none', color: '#7c3aed', fontWeight: 600, fontSize: '14px', backgroundColor: 'rgba(124, 58, 237, 0.1)', border: '1px solid rgba(124, 58, 237, 0.2)', transition: 'all 0.3s ease' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7c3aed'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.1)'; e.currentTarget.style.color = '#7c3aed'; e.currentTarget.style.transform = 'scale(1)'; }}>
               <span style={{ fontSize: '16px' }}>🔑</span>
               Login
             </Link>
           )}
 
-          {/* CART BUTTON with dynamic count */}
-          <Link to="/cart" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            padding: '8px 16px 8px 12px',
-            borderRadius: '50px',
-            textDecoration: 'none',
-            color: '#1f2937',
-            fontWeight: 500,
-            fontSize: '14px',
-            transition: 'all 0.3s ease',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(124, 58, 237, 0.1)',
-            position: 'relative'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.15)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-          >
+          <Link to="/cart" style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: '8px 16px 8px 12px', borderRadius: '50px', textDecoration: 'none', color: '#1f2937', fontWeight: 500, fontSize: '14px', transition: 'all 0.3s ease', backdropFilter: 'blur(10px)', border: '1px solid rgba(124, 58, 237, 0.1)', position: 'relative' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.15)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'; e.currentTarget.style.boxShadow = 'none'; }}>
             <span style={{ fontSize: '18px' }}>🛒</span>
             <span className="cart-text">Cart</span>
-            <span style={{
-              backgroundColor: '#7c3aed',
-              color: 'white',
-              borderRadius: '50%',
-              padding: '2px 8px',
-              fontSize: '12px',
-              fontWeight: 700,
-              marginLeft: '4px',
-              minWidth: '20px',
-              textAlign: 'center'
-            }}>
+            <span style={{ backgroundColor: '#7c3aed', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '12px', fontWeight: 700, marginLeft: '4px', minWidth: '20px', textAlign: 'center' }}>
               {cartCount}
             </span>
           </Link>
@@ -482,13 +383,35 @@ const Navbar = () => {
         <div className="mobile-menu-overlay" onClick={closeMenu} />
       )}
 
-      {/* Mobile Menu Panel - FIXED VERSION */}
+      {/* Mobile Menu Panel */}
       {isMenuOpen && (
         <div className="mobile-menu-panel">
           <button className="close-btn" onClick={closeMenu}>✕</button>
           
-          {/* REMOVED THE marginTop: '1800px' - THIS WAS THE PROBLEM! */}
-          {/* Menu items now appear at the top immediately */}
+          {/* Logo in mobile menu */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '20px',
+            paddingBottom: '16px',
+            borderBottom: '1px solid #f3f4f6'
+          }}>
+            <img 
+              src={logo} 
+              alt="Nimewai Ticket Logo"
+              style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'contain' }}
+            />
+            <div>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 700, color: '#b8860b' }}>
+                Nimewai
+              </span>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 700, fontStyle: 'italic', color: '#7c3aed', marginLeft: '4px' }}>
+                Ticket
+              </span>
+            </div>
+          </div>
+          
           <div className="mobile-menu-items">
             <Link to="/" className="mobile-link" onClick={closeMenu}>
               🏠 Home
@@ -500,38 +423,15 @@ const Navbar = () => {
               ℹ️ About
             </Link>
             
-            {/* Mobile Cart with dynamic count */}
             <Link to="/cart" className="mobile-cart-btn" onClick={closeMenu}>
               <span>🛒 Cart</span>
-              <span style={{
-                backgroundColor: '#7c3aed',
-                color: 'white',
-                borderRadius: '50%',
-                padding: '2px 10px',
-                fontSize: '14px',
-                fontWeight: 700,
-                minWidth: '24px',
-                textAlign: 'center'
-              }}>
+              <span style={{ backgroundColor: '#7c3aed', color: 'white', borderRadius: '50%', padding: '2px 10px', fontSize: '14px', fontWeight: 700, minWidth: '24px', textAlign: 'center' }}>
                 {cartCount}
               </span>
             </Link>
 
-            {/* Mobile Login/Profile - Now properly positioned */}
             {isLoggedIn ? (
-              <Link to="/profile" className="mobile-login-btn" onClick={closeMenu} style={{
-                background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                color: 'white',
-                display: 'block',
-                width: '100%',
-                padding: '14px',
-                marginTop: '16px',
-                textAlign: 'center',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: 600,
-                textDecoration: 'none'
-              }}>
+              <Link to="/profile" className="mobile-login-btn" onClick={closeMenu} style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: 'white', display: 'block', width: '100%', padding: '14px', marginTop: '16px', textAlign: 'center', borderRadius: '12px', fontSize: '16px', fontWeight: 600, textDecoration: 'none' }}>
                 👤 My Profile
               </Link>
             ) : (

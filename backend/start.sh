@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Create firebase-service-account.json from environment variable
-if [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
-  echo "📁 Creating firebase-service-account.json from environment variable..."
+# Create firebase-service-account.json from secret
+if [ -n "$FIREBASE_SERVICE_ACCOUNT_FILE" ]; then
+  echo "$FIREBASE_SERVICE_ACCOUNT_FILE" > firebase-service-account.json
+  echo "✅ firebase-service-account.json created from secret"
+elif [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
   echo "$FIREBASE_SERVICE_ACCOUNT" > firebase-service-account.json
-  echo "✅ firebase-service-account.json created successfully"
+  echo "✅ firebase-service-account.json created from environment variable"
 else
-  echo "❌ FIREBASE_SERVICE_ACCOUNT environment variable not found"
-  echo "⚠️  Firebase features will not work"
+  echo "❌ No Firebase service account found"
 fi
 
 # Start the server
-echo "🚀 Starting server..."
 node server.js
