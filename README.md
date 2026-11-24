@@ -1,71 +1,54 @@
-# Nimewahi Ticket 
-### Digital Event Ticketing & Management Platform
+# Nimewahi Ticket 🎟️
 
-Nimewahi Ticket is a web-based digital ticketing application designed to simplify event registration, ticket purchasing, payment processing and ticket verification.
+**A Full-Stack Event Ticketing and Management Platform**
 
-The platform incorporates M-PESA payment functionality, user authentication and an integrated QR code scanning system, providing a digital approach to event ticket management.
+Nimewahi Ticket is an event ticketing platform designed to simplify event discovery, ticket purchasing and event organisation. It provides users with an accessible way to explore events and purchase tickets, while giving event organisers a platform to showcase and manage their events.
+
+The project was developed using React, JavaScript, Firebase and a Node.js backend, with M-PESA payment integration and QR-based ticket functionality.
+
+## Application Screenshots
+
+### 1. Homepage
+![Nimewahi Ticket Homepage](NTscreenshots/HomePage.png)
+
+### 2. Events Listing
+![Events Page](NTscreenshots/EventsPage.png)
+
+### 3. User Authentication
+![Login Page](NTscreenshots/LoginPage.png)
+
+### 4. User Registration
+![Signup Page](NTscreenshots/SignupPage.png)
+
+### 5. Ticket Selection and Purchase
+![Purchase Page](NTscreenshots/PurchasePage.png)
+
+### 6. Shopping Cart and M-PESA Checkout
+![M-PESA Checkout](NTscreenshots/Mpesapromptpage.png)
+
+### 7. Organizer Partnership
+![Organizer Page](NTscreenshots/OrganizerPage.png)
 
 ## Key Features
 
-- **User Authentication:** Authenticated access to platform functionality.
-- **M-PESA Integration:** Digital payment functionality for ticket purchases.
-- **QR Code Ticket Verification:** Scan and verify tickets directly within the website.
-- **Digital Ticketing:** Supports online ticket purchasing and registration.
-- **Event Management:** Supports event organisers in managing ticket registrations.
-- **Responsive Interface:** Web interface designed for convenient access.
+- **Event Discovery:** Browse and explore available events.
+- **User Authentication:** Secure user registration and login.
+- **Ticket Purchasing:** Select ticket categories and quantities.
+- **M-PESA Integration:** Daraja API sandbox integration for initiating STK Push payment requests.
+- **QR-Based Ticketing:** QR code functionality for digital ticket identification and scanning.
+- **Organizer Interface:** An interface for event organisers to engage with the platform.
+- **Firebase Integration:** Backend data management and application services.
 
-##  Technology Stack
+## Technology Stack
 
-| Technology | Application |
+| Category | Technologies |
 |---|---|
-| React.js | Frontend development |
-| JavaScript | Application functionality |
-| Firebase | Backend services, database and authentication |
-| Node.js | Backend server |
-| HTML5 | Web structure |
-| CSS3 | Styling and interface design |
-| Vite | Development and build tooling |
-| React Router | Application navigation |
-| Axios | HTTP requests |
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js and npm installed.
-- Git installed.
-- Firebase project configuration.
-- Required backend and payment integration environment variables.
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/TykoonKelly/nimewai-ticket.git
-   ```
-
-2. Navigate into the project:
-
-   ```bash
-   cd nimewai-ticket
-   ```
-
-3. Install project dependencies:
-
-   ```bash
-   npm run setup
-   ```
-
-4. Configure the required Firebase and backend environment variables using your local environment configuration.
-
-5. Start the application:
-
-   ```bash
-   npm start
-   ```
-
-Refer to the backend configuration and application source files for the specific environment variables required.
+| Frontend | React.js, JavaScript, HTML5, CSS3 |
+| Backend | Node.js |
+| Database and Services | Firebase |
+| Payment Integration | Safaricom Daraja API |
+| Development Tools | Vite, Git, GitHub |
+| HTTP Requests | Axios |
 
 ## Project Structure
 
@@ -73,42 +56,100 @@ Refer to the backend configuration and application source files for the specific
 nimewai-ticket/
 │
 ├── backend/
-│   └── Backend application files
+│   ├── server.js
+│   └── package.json
 │
 ├── public/
-│   └── Public assets
-│
 ├── src/
-│   └── Frontend application source
+├── NTscreenshots/
+│   ├── HomePage.png
+│   ├── EventsPage.png
+│   ├── LoginPage.png
+│   ├── SignupPage.png
+│   ├── PurchasePage.png
+│   ├── Mpesapromptpage.png
+│   └── OrganizerPage.png
 │
-├── index.html
 ├── package.json
-├── vite.config.js
-├── netlify.toml
 └── README.md
 ```
 
-## Security Considerations
+## Installation and Setup
 
-- Keep Firebase credentials and private API keys out of public repositories.
-- Store sensitive backend configuration in environment variables.
-- Do not expose payment credentials or private authentication secrets.
-- Use appropriate authentication and server-side validation for sensitive operations.
+### Prerequisites
+
+- Node.js and npm
+- Git
+- Firebase project configuration
+- Safaricom Daraja developer account for M-PESA testing
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/TykoonKelly/nimewai-ticket.git
+```
+
+### 2. Navigate into the project
+
+```bash
+cd nimewai-ticket
+```
+
+### 3. Install dependencies
+
+```bash
+npm run setup
+```
+
+### 4. Configure environment variables
+
+Configure the required Firebase and backend environment variables using the application's existing configuration.
+
+For M-PESA integration, configure your Daraja sandbox credentials on the backend. Never commit API secrets, passwords or private credentials to GitHub.
+
+### 5. Start the frontend
+
+Open a terminal and run:
+
+```bash
+npm run dev
+```
+
+### 6. Start the backend
+
+Open a second terminal and run:
+
+```bash
+npm run backend
+```
+
+Both services should remain running during local development.
+
+## Development Status
+
+Nimewahi Ticket is an actively developed project.
+
+- Frontend application: Implemented.
+- Backend server: Implemented and starts successfully.
+- User authentication: Implemented.
+- Daraja sandbox STK Push request: Successfully initiated.
+- Payment callback confirmation: Under development and testing.
+- End-to-end payment and ticket confirmation: Pending verification.
 
 ## Project Objective
 
-The project aims to simplify event ticketing by bringing ticket purchases, digital payments and ticket verification into one web-based platform.
+The objective of Nimewahi Ticket is to simplify event ticketing by connecting event organisers with potential attendees through a digital platform.
 
-It explores how web technologies can improve event organisation, registration processes and ticket management.
+By supporting advance ticket purchases and digital ticket identification, the platform aims to improve event registration, attendance planning and ticket management.
 
-##  Developer
+## Developer
 
 **Kioko Kelly Kyalo**
 
-Information Systems and Technology Graduate | Web Developer
+GitHub: [@TykoonKelly](https://github.com/TykoonKelly)
 
-GitHub: [TykoonKelly](https://github.com/TykoonKelly)
+Repository: [Nimewahi Ticket](https://github.com/TykoonKelly/nimewai-ticket)
 
 ---
 
-*Developed as a practical web application project demonstrating frontend development, backend integration, authentication and digital payment functionality.*
+*Developed as a full-stack software development project.*
