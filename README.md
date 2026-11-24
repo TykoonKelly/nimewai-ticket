@@ -1,4 +1,4 @@
-# Nimewahi Ticket 🎟️
+# Nimewahi Ticket 
 
 **A Full-Stack Event Ticketing and Management Platform**
 
